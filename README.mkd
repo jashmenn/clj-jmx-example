@@ -1,0 +1,25 @@
+# jmx-test
+
+A clojure example of jmx. Includes a CrazyBean that allows you to invoke
+clojure functions as jmx operations.
+
+## Warning
+
+I'm not sure if JMX will allow operations that aren't described. If they
+do then don't use this because it could possibly just call any function in any namespace that is sent to it. 
+
+Use at your own risk.
+
+## Usage
+
+    lein compile && lein run -m jmx-test.core
+    jconsole
+
+## Authors
+
+* Nate Murray <nate@natemurray.com>
+* Based on the JMX library by Stuart Halloway
+
+## Future Plans
+
+Clean up and submit as a patch to clojure.contrib.jmx.

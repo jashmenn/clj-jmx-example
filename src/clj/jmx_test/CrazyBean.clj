@@ -10,10 +10,7 @@
   (:import [javax.management DynamicMBean MBeanInfo AttributeList
             MBeanOperationInfo MBeanParameterInfo]))
 
-(defn -init [derefable]
-  [[] derefable])
-
-;; util
+;; todo mv to util
 (defn zip [& cols] (apply map vector cols))
 
 (defn unmangle
@@ -31,6 +28,9 @@
   (intern (clojure.lang.Namespace/find ns-symbol) (symbol (name fn-name))))
 ;; /util
 
+(defn -init [derefable]
+  [[] derefable])
+
 (defn build-parameter-info [param opts]
   (let [{:keys [name type description]
          :or {name  (.getName param)
@@ -42,12 +42,10 @@
   (into-array MBeanParameterInfo
    (map 
     (fn [[i param]] 
-      (prn [i param])
       (build-parameter-info param {:name (str "p" i)})) 
     (zip (range 0 (count params-seq)) params-seq))))
 
 (defn build-operation-info [ifn opts]
-  (prn (.getName (class ifn)))
   (let [{:keys [name description argv return-type impact]
          :or {name         (unmangle (.getName (class ifn))) 
               description  (unmangle (.getName (class ifn)))
@@ -86,8 +84,8 @@
     result))
 
 (defn -invoke [this name args sig]
+  ;; this might be a huge security hole fyi
   ;; who knows what kind of havoc this could wreak!
-  (prn ["invoke " name args sig])
   (let [[ns-name fn-name] (re-split #"\$" name)
         ifn (fn-by-name (symbol ns-name) fn-name)]
     (apply ifn (seq args))))
