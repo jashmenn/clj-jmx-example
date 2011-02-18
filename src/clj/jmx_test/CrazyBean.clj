@@ -1,3 +1,4 @@
+
 (ns jmx-test.CrazyBean
   (:gen-class
    :implements [javax.management.DynamicMBean]
@@ -5,7 +6,7 @@
    :state state
    :constructors {[Object] []})
   (:require [clojure.contrib.jmx :as jmx])
-  (:use [clojure.contrib.str-utils :only (re-sub)])
+  (:use [clojure.contrib.str-utils :only (re-sub re-split)])
   (:import [javax.management DynamicMBean MBeanInfo AttributeList
             MBeanOperationInfo MBeanParameterInfo]))
 
@@ -46,9 +47,10 @@
     (zip (range 0 (count params-seq)) params-seq))))
 
 (defn build-operation-info [ifn opts]
+  (prn (.getName (class ifn)))
   (let [{:keys [name description argv return-type impact]
-         :or {name         (str (class ifn))
-              description  (str (class ifn))
+         :or {name         (unmangle (.getName (class ifn))) 
+              description  (unmangle (.getName (class ifn)))
               argv         nil
               return-type  "void"
               impact       MBeanOperationInfo/ACTION}} opts
@@ -62,12 +64,12 @@
 ; TODO: rest of the arguments, as needed
 (defn generate-mbean-info [clj-bean]
   (MBeanInfo. 
-   (.. clj-bean getClass getName)               ; class name
-   "Clojure Dynamic MBean"                      ; description
-   (jmx/map->attribute-infos (dissoc @(.state clj-bean) :operations)) ; attributes
-   nil                                          ; constructors
+   (.. clj-bean getClass getName)                ; class name
+   "Clojure Dynamic MBean"                       ; description
+   (jmx/map->attribute-infos (dissoc @(.state clj-bean) :operations)) ;; attributes
+   nil                                           ; constructors
    (operation-infos (@(.state clj-bean) :operations)) ; operations
-   nil))                                        ; notifications                                          
+   nil))                                         ; notifications                                          
 (defn -getMBeanInfo
   [this]
   (generate-mbean-info this))
@@ -84,4 +86,8 @@
     result))
 
 (defn -invoke [this name args sig]
-  (prn ["invoke " name args sig]))
+  ;; who knows what kind of havoc this could wreak!
+  (prn ["invoke " name args sig])
+  (let [[ns-name fn-name] (re-split #"\$" name)
+        ifn (fn-by-name (symbol ns-name) fn-name)]
+    (apply ifn (seq args))))

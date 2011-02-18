@@ -12,16 +12,14 @@
   (println phrase))
 
 (defn reset-counter []
-  (set-jmx-stat :core :a-number 0))
+  (set-jmx-stat :core :a-number 0)
+  nil) ;; don't return a clojure data structure or jconsole will freak out
 
 (def *core-stats* (ref { 
    :a-number 0 
-   :operations [[say-hi {:name "say-hi"
-                         :description "says 'hello world'"}]
-                [reset-counter {:name "reset-counter"}]
-                [say-something {:name "say-something"
-                                :argv [String]}]
-                ]}))
+   :operations [[say-hi {:description "says 'hello world'"}]
+                [reset-counter {}]
+                [say-something {:argv [String]}]]}))
 
 (def jmx-ns {:core *core-stats*})
 
